@@ -3,23 +3,24 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class EncryptionService {
-  private readonly algorithm = 'aes-256-cbc';
+  private readonly algorithm = 'aes-256-ctr';
   private readonly key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'your-secret-key', 'salt', 32);
-  private readonly iv = crypto.randomBytes(16);
 
   encrypt(text: string): string {
-    const cipher = crypto.createCipheriv(this.algorithm, this.key, this.iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return `${this.iv.toString('hex')}:${encrypted}`;
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return `${iv.toString('hex')}:${encrypted.toString('hex')}`;
   }
 
   decrypt(encryptedText: string): string {
     const [ivHex, encrypted] = encryptedText.split(':');
     const iv = Buffer.from(ivHex, 'hex');
     const decipher = crypto.createDecipheriv(this.algorithm, this.key, iv);
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
+    const decrypted = Buffer.concat([
+      decipher.update(Buffer.from(encrypted, 'hex')),
+      decipher.final()
+    ]);
+    return decrypted.toString();
   }
 }
