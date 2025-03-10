@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { MongooseModule } from '@nestjs/mongoose';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,6 +19,9 @@ async function bootstrap() {
   // Enable CORS if needed
   app.enableCors();
 
-  await app.listen(3005);
+  // Connect to MongoDB
+  const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://aarisk444:EmBBUxGThYIXAApw@cluster0.fsuix.mongodb.net/7p'; // Update with your DB name
+  await MongooseModule.forRoot(mongoUri);
+  await app.listen(3008);
 }
 bootstrap();
