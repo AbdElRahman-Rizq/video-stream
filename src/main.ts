@@ -22,6 +22,6 @@ async function bootstrap() {
   // Connect to MongoDB
   const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://aarisk444:EmBBUxGThYIXAApw@cluster0.fsuix.mongodb.net/7p'; // Update with your DB name
   await MongooseModule.forRoot(mongoUri);
-  await app.listen(5000);
+  await app.listen(process.env.PORT || 3008);
 }
 bootstrap();
