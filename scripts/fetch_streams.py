@@ -20,7 +20,8 @@ def fetch_streams(video_id, max_retries=3):
                 'format': 'best[height<=720]',
                 'quiet': True,
                 'no_warnings': True,
-                'cookies-from-browser': True,  # Use cookies from browser
+                'cookies-from-browser': 'chrome',  # Use cookies from Chrome
+                'cookies': COOKIES_FILE,  # Optionally specify a cookies file
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
