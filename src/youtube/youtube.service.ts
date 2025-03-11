@@ -34,7 +34,7 @@ export class YoutubeService {
 
             if (stderr) {
                 console.error('Python Script Error:', stderr);
-                throw new HttpException('Failed to fetch video streams from the server. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException(`Failed to fetch video streams from the server. Error: ${stderr}`, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             let formats;
