@@ -13,18 +13,18 @@ export class YoutubeService {
     constructor(@InjectModel(Video.name) private videoModel: Model<Video>) {}
 
     async getVideoStreams(videoId: string) {
-        if (!videoId) {
-            throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
-        }
-
-        // Check if the videoId exists in the database
-        const existingVideo = await this.videoModel.findOne({ videoId });
-        if (existingVideo) {
-            console.log("Sending streams without library")
-            return existingVideo.streams; // Return the streams from the database
-        }
-
         try {
+            if (!videoId) {
+                throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
+            }
+
+            // Check if the videoId exists in the database
+            const existingVideo = await this.videoModel.findOne({ videoId });
+            if (existingVideo) {
+                console.log("Sending streams without library");
+                return existingVideo.streams; // Return the streams from the database
+            }
+
             const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'fetch_streams.py');
             const { stdout, stderr } = await execAsync(`python ${scriptPath} ${videoId}`);
             if (stderr) {
@@ -45,8 +45,8 @@ export class YoutubeService {
         } catch (error) {
             console.error('YouTube Fetch Error:', error);
             throw new HttpException(
-                'Could not extract video streams. Please try again later.',
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                error.message || 'Could not extract video streams. Please try again later.',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }

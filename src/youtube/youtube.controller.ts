@@ -7,12 +7,12 @@ export class YoutubeController {
 
     @Get('video')
     async getVideoStreams(@Query('id') videoId: string) {
-        console.log('Received videoId:', videoId);
-        if (!videoId) {
-            throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
-        }
-
         try {
+            console.log('Received videoId:', videoId);
+            if (!videoId) {
+                throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
+            }
+
             const streams = await this.youtubeService.getVideoStreams(videoId);
             return streams;
         } catch (error) {
