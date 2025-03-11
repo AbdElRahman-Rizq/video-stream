@@ -15,7 +15,7 @@ export class YoutubeService {
     async getVideoStreams(videoId: string) {
         try {
             if (!videoId) {
-                throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Invalid YouTube video ID provided.', HttpStatus.BAD_REQUEST);
             }
 
             // Check if the videoId exists in the database
@@ -34,7 +34,7 @@ export class YoutubeService {
 
             if (stderr) {
                 console.error('Python Script Error:', stderr);
-                throw new HttpException('Failed to fetch video streams.', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException('Failed to fetch video streams from the server. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             let formats;
@@ -42,11 +42,11 @@ export class YoutubeService {
                 formats = JSON.parse(stdout);
             } catch (jsonError) {
                 console.error('JSON Parse Error:', jsonError);
-                throw new HttpException('Invalid response from YouTube.', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException('Received an invalid response from YouTube. Please check the video ID.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
             if (!formats || formats.length === 0) {
-                throw new HttpException('No valid video formats found.', HttpStatus.NOT_FOUND);
+                throw new HttpException('No valid video formats found for the provided video ID.', HttpStatus.NOT_FOUND);
             }
 
             // Save the streams to the database for caching
@@ -57,7 +57,7 @@ export class YoutubeService {
         } catch (error) {
             console.error('YouTube Fetch Error:', error);
             throw new HttpException(
-                error.message || 'Could not extract video streams. Please try again later.',
+                error.message || 'An internal server error occurred. Please try again later.',
                 error.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }

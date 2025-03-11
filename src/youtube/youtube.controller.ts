@@ -10,7 +10,7 @@ export class YoutubeController {
         try {
             console.log('Received videoId:', videoId);
             if (!videoId) {
-                throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Invalid YouTube video ID provided.', HttpStatus.BAD_REQUEST);
             }
 
             const streams = await this.youtubeService.getVideoStreams(videoId);
