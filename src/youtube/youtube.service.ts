@@ -15,58 +15,51 @@ export class YoutubeService {
     async getVideoStreams(videoId: string) {
         try {
             if (!videoId) {
-                throw new HttpException('Invalid YouTube video ID', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Invalid YouTube video ID provided.', HttpStatus.BAD_REQUEST);
             }
-    
-            // Check if video streams are already cached
+
+            // Check if the videoId exists in the database
             const existingVideo = await this.videoModel.findOne({ videoId });
             if (existingVideo) {
-                return existingVideo.streams;
+                console.log("Sending streams from cache");
+                return existingVideo.streams; // Return the cached streams
             }
-    
-            // Construct script path and cookies path
+
             const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'fetch_streams.py');
-            const cookiesPath = path.join(__dirname, '..', '..', 'cookies.txt');
-    
-            // Execute Python script with cookies
-            const command = `python ${scriptPath} ${videoId} --cookies ${cookiesPath}`;
-            const { stdout, stderr } = await execAsync(command);
-    
-            // Handle script errors
+            
+            console.log(`Fetching video streams for ${videoId}...`);
+            
+            // Execute the Python script
+            const { stdout, stderr } = await execAsync(`python3 ${scriptPath} ${videoId}`);
+
             if (stderr) {
                 console.error('Python Script Error:', stderr);
-                throw new HttpException(`Failed to fetch video streams: ${stderr.trim()}`, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException('Failed to fetch video streams from the server. Please try again later.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
-    
+
             let formats;
             try {
                 formats = JSON.parse(stdout);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-                throw new HttpException('Invalid response format from script.', HttpStatus.INTERNAL_SERVER_ERROR);
+            } catch (jsonError) {
+                console.error('JSON Parse Error:', jsonError);
+                throw new HttpException('Received an invalid response from YouTube. Please check the video ID.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
-    
-            if (!Array.isArray(formats) || formats.length === 0) {
-                throw new HttpException('No valid video formats found.', HttpStatus.NOT_FOUND);
+
+            if (!formats || formats.length === 0) {
+                throw new HttpException('No valid video formats found for the provided video ID.', HttpStatus.NOT_FOUND);
             }
-    
-            // Save to database
+
+            // Save the streams to the database for caching
             const newVideo = new this.videoModel({ videoId, streams: formats });
             await newVideo.save();
-    
+
             return formats;
         } catch (error) {
             console.error('YouTube Fetch Error:', error);
-    
-            if (error instanceof HttpException) {
-                throw error; // Preserve HTTP status codes for known errors
-            }
-    
             throw new HttpException(
-                error.message || 'Could not extract video streams. Please try again later.',
-                HttpStatus.INTERNAL_SERVER_ERROR
+                error.message || 'An internal server error occurred. Please try again later.',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }
-    
 }
