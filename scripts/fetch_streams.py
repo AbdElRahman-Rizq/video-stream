@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import random
+import os
 
 # Path to cookies.txt (update the path as needed)
 COOKIES_FILE = "cookies.txt"
@@ -19,7 +20,7 @@ def fetch_streams(video_id, max_retries=3):
                 'format': 'best[height<=720]',
                 'quiet': True,
                 'no_warnings': True,
-                'cookies': COOKIES_FILE,  # Use cookies for authentication
+                'cookies-from-browser': True,  # Use cookies from browser
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
