@@ -21,23 +21,35 @@ export class YoutubeService {
             // Check if the videoId exists in the database
             const existingVideo = await this.videoModel.findOne({ videoId });
             if (existingVideo) {
-                console.log("Sending streams without library");
-                return existingVideo.streams; // Return the streams from the database
+                console.log("Sending streams from cache");
+                return existingVideo.streams; // Return the cached streams
             }
 
             const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'fetch_streams.py');
-            const { stdout, stderr } = await execAsync(`python ${scriptPath} ${videoId}`);
+            
+            console.log(`Fetching video streams for ${videoId}...`);
+            
+            // Execute the Python script
+            const { stdout, stderr } = await execAsync(`python3 ${scriptPath} ${videoId}`);
+
             if (stderr) {
                 console.error('Python Script Error:', stderr);
                 throw new HttpException('Failed to fetch video streams.', HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            const formats = JSON.parse(stdout);
-            if (formats.length === 0) {
+            let formats;
+            try {
+                formats = JSON.parse(stdout);
+            } catch (jsonError) {
+                console.error('JSON Parse Error:', jsonError);
+                throw new HttpException('Invalid response from YouTube.', HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            if (!formats || formats.length === 0) {
                 throw new HttpException('No valid video formats found.', HttpStatus.NOT_FOUND);
             }
 
-            // Save the streams to the database
+            // Save the streams to the database for caching
             const newVideo = new this.videoModel({ videoId, streams: formats });
             await newVideo.save();
 
