@@ -1,0 +1,20 @@
+name: Deploy Scholar frontend to Dev
+
+on:
+  push:
+    branches: [main] 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+              
+      - name: Deploy front to main
+        uses: appleboy/ssh-action@master
+        with:
+          username: firststep
+          host: ${{ secrets.DROPLET3 }}
+          password: ${{ secrets.PASS }}
+          script: 'cd ~ && ./front_deploy_youtube.sh'

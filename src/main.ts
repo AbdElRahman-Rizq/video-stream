@@ -20,8 +20,12 @@ async function bootstrap() {
   app.enableCors();
 
   // Connect to MongoDB
-  const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://aarisk444:EmBBUxGThYIXAApw@cluster0.fsuix.mongodb.net/7p'; // Update with your DB name
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/youtube'; // Update with your DB name
+  console.log("Mongo URL: ",mongoUri);
+  let PORT = process.env.PORT || 3008
+  console.log("APP is runnig on PORT:  ",PORT);
+  
   await MongooseModule.forRoot(mongoUri);
-  await app.listen(3008);
+  await app.listen(PORT);
 }
 bootstrap();
