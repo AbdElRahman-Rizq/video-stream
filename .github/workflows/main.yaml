@@ -14,7 +14,7 @@ jobs:
       - name: Deploy front to main
         uses: appleboy/ssh-action@master
         with:
-          username: firststep
+          username: youtube
           host: ${{ secrets.DROPLET3 }}
           password: ${{ secrets.PASS }}
           script: 'cd ~ && ./front_deploy_youtube.sh'
