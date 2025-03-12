@@ -13,7 +13,7 @@ def fetch_streams(video_id):
             'format': 'best[height<=720]',
             'quiet': True,
             'no_warnings': True,
-            'cookiefile': cookies_path,  # Use absolute path
+            'cookiefrombrowser': "chrome",  # Use absolute path
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
