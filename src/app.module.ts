@@ -9,7 +9,7 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), 
     MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb+srv://aarisk444:EmBBUxGThYIXAApw@cluster0.fsuix.mongodb.net/7p'),
-    YouTubeModule,
+    //YouTubeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
