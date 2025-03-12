@@ -24,7 +24,7 @@ export class YoutubeService {
             console.log(`Fetching video streams for ${videoId}...`);
 
             // Call the Python service running inside Docker
-            const pythonServiceUrl = `http://yt-dlp-service:5001/get_video?video_id=${videoId}`;
+            const pythonServiceUrl = `${process.env.PYTHON_SERVICE_URL}/get_video?video_id=${videoId}`;
             const { data } = await axios.get(pythonServiceUrl);
 
             if (data.error) {
