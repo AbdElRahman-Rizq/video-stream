@@ -1,12 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import * as path from 'path';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Video } from './video.schema';
-
-const execAsync = promisify(exec);
+import axios from 'axios'; // Use Axios to call the Python API
 
 @Injectable()
 export class YoutubeService {
@@ -18,48 +14,31 @@ export class YoutubeService {
                 throw new HttpException('Invalid YouTube video ID provided.', HttpStatus.BAD_REQUEST);
             }
 
-            // Check if the videoId exists in the database
+            // Check if the videoId exists in the database (caching)
             const existingVideo = await this.videoModel.findOne({ videoId });
             if (existingVideo) {
                 console.log("Sending streams from cache");
-                return existingVideo.streams; // Return the cached streams
+                return existingVideo.streams; 
             }
 
-            const scriptPath = path.join(__dirname, '..', '..', 'scripts', 'fetch_streams.py');
-            
             console.log(`Fetching video streams for ${videoId}...`);
-            
-            // Execute the Python script
-            const { stdout, stderr } = await execAsync(`python3 ${scriptPath} ${videoId}`);
 
-            if (stderr) {
-                console.error('Python Script Error:', stderr);
-                throw new HttpException(`Failed to fetch video streams from the server. ${stderr}`, HttpStatus.INTERNAL_SERVER_ERROR);
+            // Call the Python service running inside Docker
+            const pythonServiceUrl = `http://yt-dlp-service:5001/get_video?video_id=${videoId}`;
+            const { data } = await axios.get(pythonServiceUrl);
+
+            if (data.error) {
+                throw new HttpException(`Python Service Error: ${data.error}`, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            let formats;
-            try {
-                formats = JSON.parse(stdout);
-            } catch (jsonError) {
-                console.error('JSON Parse Error:', jsonError);
-                throw new HttpException('Received an invalid response from YouTube. Please check the video ID.', HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            if (!formats || formats.length === 0) {
-                throw new HttpException('No valid video formats found for the provided video ID.', HttpStatus.NOT_FOUND);
-            }
-
-            // Save the streams to the database for caching
-            const newVideo = new this.videoModel({ videoId, streams: formats });
+            // Save the streams in MongoDB for caching
+            const newVideo = new this.videoModel({ videoId, streams: data });
             await newVideo.save();
 
-            return formats;
+            return data;
         } catch (error) {
             console.error('YouTube Fetch Error:', error);
-            throw new HttpException(
-                error.message || 'An internal server error occurred. Please try again later.',
-                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
+            throw new HttpException(error.message || 'An internal server error occurred.', error.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
