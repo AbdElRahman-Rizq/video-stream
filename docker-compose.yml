@@ -6,12 +6,12 @@ services:
   #     dockerfile: Dockerfile
   #   ports:
   #     - "3000:3000" # Expose NestJS on port 3000
-  #   depends_on:
-  #     - yt-dlp-service
-  #   environment:
-  #     - PYTHON_SERVICE_URL=http://yt-dlp-service:5001
-  #   networks:
-  #     - app-network
+    depends_on:
+      - yt-dlp-service
+    environment:
+      - PYTHON_SERVICE_URL=http://yt-dlp-service:5001
+    networks:
+      - app-network
 
   yt-dlp-service:
     build:
