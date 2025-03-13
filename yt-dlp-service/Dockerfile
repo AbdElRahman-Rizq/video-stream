@@ -33,22 +33,18 @@ RUN wget --tries=3 --timeout=10 "https://chromedriver.storage.googleapis.com/114
 
 # Set working directory
 WORKDIR /app
-
-# Copy files
-COPY requirements.txt .  
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --upgrade yt-dlp flask
-
-# Copy scripts and app
 COPY . .
 
-# Copy cookies
+# Copy the valid cookies.txt file into the Docker image
 COPY scripts/cookies.txt /app/src/scripts/cookies.txt
 RUN chmod 600 /app/src/scripts/cookies.txt
 
-# Set permissions
-RUN useradd -m appuser && chown -R appuser:appuser /app
+RUN useradd -m appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 
 # Expose Flask API on port 5001
-CMD ["python3", "app.py"] 
+ENTRYPOINT ["python3", "app.py"]

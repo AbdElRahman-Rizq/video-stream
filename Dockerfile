@@ -35,7 +35,7 @@ RUN wget --tries=3 --timeout=10 "https://chromedriver.storage.googleapis.com/114
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --upgrade yt-dlp flask
+RUN pip install --upgrade yt-dlp
 COPY . .
 
 # Copy the valid cookies.txt file into the Docker image
@@ -46,4 +46,4 @@ RUN useradd -m appuser \
     && chown -R appuser:appuser /app
 USER appuser
 VOLUME /app/cookies
-CMD ["python3", "app.py"]
+ENTRYPOINT ["python", "src/scripts/fetch_streams.py"]

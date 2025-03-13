@@ -12,7 +12,7 @@ def get_video():
 
     try:
         result = subprocess.run(
-            ["python3", "src/scripts/fetch_streams.py", video_id], 
+            ["python3", "scripts/fetch_streams.py", video_id], 
             capture_output=True, text=True
         )
         if result.stderr:
